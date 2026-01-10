@@ -17,6 +17,7 @@ from database import (
     get_examples, get_example,
     get_admin_stats, get_all_users, get_all_cards, is_user_admin
 )
+from card_generation import generate_card_variants_stream, generate_card_message
 from user_auth import router as user_auth_router
 from admin import router as admin_router
 from auth_utils import get_current_user_id
@@ -149,7 +150,7 @@ async def get_card_detail(card_id: int, user_id: int = Depends(get_current_user_
 
 
 @app.post("/api/cards/generate-stream")
-async def generate_card_stream(
+async def generate_card_stream_endpoint(
     prompt: str = Form(...),
     occasion: str = Form(None),
     style: str = Form(None),
@@ -160,31 +161,25 @@ async def generate_card_stream(
     Generate card designs from prompt and optional photos.
     Returns SSE stream with generation progress.
     """
-    # TODO: Implement card generation with Gemini
-    # For now, return a placeholder response
+    # Read photo data
+    photo_data = []
+    for photo in photos:
+        if photo.filename:  # Skip empty uploads
+            content = await photo.read()
+            if content:
+                photo_data.append(content)
 
-    async def generate():
-        import json
-        import time
-
-        # Emit start event
-        yield f"data: {json.dumps({'type': 'start', 'message': 'Starting card generation...'})}\n\n"
-
-        # Simulate processing
-        yield f"data: {json.dumps({'type': 'progress', 'step': 1, 'total': 4, 'message': 'Analyzing prompt...'})}\n\n"
-        time.sleep(1)
-
-        yield f"data: {json.dumps({'type': 'progress', 'step': 2, 'total': 4, 'message': 'Generating designs...'})}\n\n"
-        time.sleep(1)
-
-        # Placeholder - in real implementation, generate 4 variants
-        yield f"data: {json.dumps({'type': 'progress', 'step': 3, 'total': 4, 'message': 'Rendering variants...'})}\n\n"
-        time.sleep(1)
-
-        yield f"data: {json.dumps({'type': 'progress', 'step': 4, 'total': 4, 'message': 'Finalizing...'})}\n\n"
-
-        # Complete with placeholder data
-        yield f"data: {json.dumps({'type': 'complete', 'message': 'Card generation complete!', 'variants': []})}\n\n"
+    def generate():
+        # Use the card generation stream
+        for event in generate_card_variants_stream(
+            user_id=user_id,
+            prompt=prompt,
+            occasion=occasion,
+            style=style,
+            photos=photo_data if photo_data else None,
+            num_variants=4
+        ):
+            yield f"data: {event}\n\n"
 
     return StreamingResponse(
         generate(),
@@ -230,7 +225,7 @@ async def delete_card_endpoint(card_id: int, user_id: int = Depends(get_current_
 # ===== MESSAGE GENERATION =====
 
 @app.post("/api/messages/generate")
-async def generate_message(
+async def generate_message_endpoint(
     request: MessageGenerateRequest,
     user_id: int = Depends(get_current_user_id)
 ):
@@ -239,16 +234,14 @@ async def generate_message(
     if not card:
         raise HTTPException(status_code=404, detail="Card not found")
 
-    # TODO: Implement message generation with Gemini
-    # For now, return a placeholder
-    return {
-        "message": f"Wishing you all the best! 💝",
-        "alternatives": [
-            "Sending warm wishes your way!",
-            "Hope this brings a smile to your face!",
-            "With love and best wishes!"
-        ]
-    }
+    # Use the card's prompt and occasion for context
+    result = generate_card_message(
+        prompt=card.get('prompt', ''),
+        occasion=card.get('occasion'),
+        tone=request.tone or "warm"
+    )
+
+    return result
 
 
 # ===== EXAMPLES GALLERY =====

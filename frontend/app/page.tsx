@@ -34,6 +34,13 @@ interface Example {
   is_featured: boolean;
 }
 
+interface CardVariant {
+  index: number;
+  image_base64: string;
+  mime_type: string;
+  variation: string;
+}
+
 export default function Home() {
   const { user, token, logout, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -46,6 +53,8 @@ export default function Home() {
   const [photos, setPhotos] = useState<File[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationProgress, setGenerationProgress] = useState('');
+  const [generatedVariants, setGeneratedVariants] = useState<CardVariant[]>([]);
+  const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
 
   // My Cards state
   const [cards, setCards] = useState<Card[]>([]);
@@ -74,15 +83,6 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [notification]);
-
-  // Load data when tab changes
-  useEffect(() => {
-    if (activeTab === 'my-cards' && token) {
-      loadCards();
-    } else if (activeTab === 'gallery') {
-      loadExamples();
-    }
-  }, [activeTab, token, loadCards, loadExamples]);
 
   const showNotification = (type: 'success' | 'error' | 'info', message: string) => {
     setNotification({ type, message });
@@ -124,6 +124,15 @@ export default function Home() {
     }
   }, [occasionFilter]);
 
+  // Load data when tab changes
+  useEffect(() => {
+    if (activeTab === 'my-cards' && token) {
+      loadCards();
+    } else if (activeTab === 'gallery') {
+      loadExamples();
+    }
+  }, [activeTab, token, loadCards, loadExamples]);
+
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -144,6 +153,8 @@ export default function Home() {
 
     setIsGenerating(true);
     setGenerationProgress('Starting...');
+    setGeneratedVariants([]);
+    setSelectedVariant(null);
 
     try {
       const formData = new FormData();
@@ -164,6 +175,7 @@ export default function Home() {
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
+      const tempVariants: CardVariant[] = [];
 
       while (reader) {
         const { done, value } = await reader.read();
@@ -178,13 +190,16 @@ export default function Home() {
               const data = JSON.parse(line.slice(6));
               if (data.type === 'progress') {
                 setGenerationProgress(data.message);
+              } else if (data.type === 'variant_ready') {
+                setGenerationProgress(`Generated ${data.variation} design...`);
               } else if (data.type === 'complete') {
-                showNotification('success', 'Card generated successfully!');
-                // Reset form
-                setPrompt('');
-                setOccasion('');
-                setStyle('');
-                setPhotos([]);
+                if (data.variants && data.variants.length > 0) {
+                  setGeneratedVariants(data.variants);
+                  setSelectedVariant(0);
+                  showNotification('success', data.message || 'Cards generated!');
+                } else {
+                  showNotification('error', 'No card designs were generated');
+                }
               } else if (data.type === 'error') {
                 showNotification('error', data.message);
               }
@@ -200,6 +215,15 @@ export default function Home() {
       setIsGenerating(false);
       setGenerationProgress('');
     }
+  };
+
+  const handleStartOver = () => {
+    setGeneratedVariants([]);
+    setSelectedVariant(null);
+    setPrompt('');
+    setOccasion('');
+    setStyle('');
+    setPhotos([]);
   };
 
   const handleUseExample = (example: Example) => {
@@ -290,115 +314,209 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         {/* Create Tab */}
         {activeTab === 'create' && (
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
-              <h2 className="text-xl font-semibold text-white mb-6">Create a Card</h2>
-
-              {/* Prompt */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Describe your card
-                </label>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="e.g., Birthday card for my mum who loves gardening and cats, make it funny but not crude"
-                  className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
-                  rows={4}
-                  disabled={isGenerating}
-                />
-              </div>
-
-              {/* Occasion & Style */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Occasion
-                  </label>
-                  <select
-                    value={occasion}
-                    onChange={(e) => setOccasion(e.target.value)}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
-                    disabled={isGenerating}
+          <div className="max-w-4xl mx-auto">
+            {/* Show variant selection if we have generated variants */}
+            {generatedVariants.length > 0 ? (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-white">Choose Your Card Design</h2>
+                  <button
+                    onClick={handleStartOver}
+                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
                   >
-                    <option value="">Select occasion...</option>
-                    {occasions.map(o => (
-                      <option key={o} value={o.toLowerCase()}>{o}</option>
-                    ))}
-                  </select>
+                    Start Over
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Style (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={style}
-                    onChange={(e) => setStyle(e.target.value)}
-                    placeholder="e.g., playful, elegant, minimal"
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
-                    disabled={isGenerating}
-                  />
-                </div>
-              </div>
 
-              {/* Photo Upload */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Photos (optional, up to 5)
-                </label>
-                <div className="flex flex-wrap gap-3">
-                  {photos.map((photo, index) => (
-                    <div key={index} className="relative">
-                      <img
-                        src={URL.createObjectURL(photo)}
-                        alt={`Photo ${index + 1}`}
-                        className="w-20 h-20 object-cover rounded-lg border border-gray-700"
-                      />
-                      <button
-                        onClick={() => removePhoto(index)}
-                        className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
+                {/* Variant Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {generatedVariants.map((variant) => (
+                    <button
+                      key={variant.index}
+                      onClick={() => setSelectedVariant(variant.index)}
+                      className={`relative rounded-xl overflow-hidden border-2 transition-all ${
+                        selectedVariant === variant.index
+                          ? 'border-rose-500 ring-2 ring-rose-500/50'
+                          : 'border-gray-700 hover:border-gray-600'
+                      }`}
+                    >
+                      <div className="aspect-[5/7]">
+                        <img
+                          src={`data:${variant.mime_type};base64,${variant.image_base64}`}
+                          alt={`${variant.variation} design`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                        <span className="text-white text-xs capitalize">{variant.variation}</span>
+                      </div>
+                      {selectedVariant === variant.index && (
+                        <div className="absolute top-2 right-2 bg-rose-500 rounded-full p-1">
+                          <Heart className="w-3 h-3 text-white fill-white" />
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Selected variant preview and actions */}
+                {selectedVariant !== null && (
+                  <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
+                    <div className="flex gap-6">
+                      {/* Preview */}
+                      <div className="flex-1">
+                        <img
+                          src={`data:${generatedVariants[selectedVariant].mime_type};base64,${generatedVariants[selectedVariant].image_base64}`}
+                          alt="Selected card"
+                          className="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                        />
+                      </div>
+                      {/* Actions */}
+                      <div className="w-64 space-y-4">
+                        <h3 className="text-lg font-medium text-white">Card Options</h3>
+                        <p className="text-gray-400 text-sm">
+                          {prompt.length > 100 ? prompt.slice(0, 100) + '...' : prompt}
+                        </p>
+                        <button
+                          onClick={() => {
+                            showNotification('info', 'Save functionality coming soon!');
+                          }}
+                          className="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 text-white font-medium rounded-lg transition-opacity"
+                        >
+                          Save Card
+                        </button>
+                        <button
+                          onClick={handleGenerate}
+                          disabled={isGenerating}
+                          className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        >
+                          {isGenerating ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            'Regenerate'
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Show the creation form */
+              <div className="max-w-2xl mx-auto">
+                <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
+                  <h2 className="text-xl font-semibold text-white mb-6">Create a Card</h2>
+
+                  {/* Prompt */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Describe your card
+                    </label>
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      placeholder="e.g., Birthday card for my mum who loves gardening and cats, make it funny but not crude"
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
+                      rows={4}
+                      disabled={isGenerating}
+                    />
+                  </div>
+
+                  {/* Occasion & Style */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Occasion
+                      </label>
+                      <select
+                        value={occasion}
+                        onChange={(e) => setOccasion(e.target.value)}
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
                         disabled={isGenerating}
                       >
-                        <X className="w-3 h-3 text-white" />
-                      </button>
+                        <option value="">Select occasion...</option>
+                        {occasions.map(o => (
+                          <option key={o} value={o.toLowerCase()}>{o}</option>
+                        ))}
+                      </select>
                     </div>
-                  ))}
-                  {photos.length < 5 && (
-                    <label className={`w-20 h-20 border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-600 transition-colors ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Style (optional)
+                      </label>
                       <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handlePhotoUpload}
-                        className="hidden"
-                        multiple
+                        type="text"
+                        value={style}
+                        onChange={(e) => setStyle(e.target.value)}
+                        placeholder="e.g., playful, elegant, minimal"
+                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
                         disabled={isGenerating}
                       />
-                      <Upload className="w-6 h-6 text-gray-500" />
+                    </div>
+                  </div>
+
+                  {/* Photo Upload */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Photos (optional, up to 5)
                     </label>
-                  )}
+                    <div className="flex flex-wrap gap-3">
+                      {photos.map((photo, index) => (
+                        <div key={index} className="relative">
+                          <img
+                            src={URL.createObjectURL(photo)}
+                            alt={`Photo ${index + 1}`}
+                            className="w-20 h-20 object-cover rounded-lg border border-gray-700"
+                          />
+                          <button
+                            onClick={() => removePhoto(index)}
+                            className="absolute -top-2 -right-2 bg-red-500 rounded-full p-1"
+                            disabled={isGenerating}
+                          >
+                            <X className="w-3 h-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                      {photos.length < 5 && (
+                        <label className={`w-20 h-20 border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-600 transition-colors ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handlePhotoUpload}
+                            className="hidden"
+                            multiple
+                            disabled={isGenerating}
+                          />
+                          <Upload className="w-6 h-6 text-gray-500" />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Generate Button */}
+                  <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating || !prompt.trim()}
+                    className="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-opacity flex items-center justify-center gap-2"
+                  >
+                    {isGenerating ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        {generationProgress || 'Generating...'}
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-5 h-5" />
+                        Generate Card
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
-
-              {/* Generate Button */}
-              <button
-                onClick={handleGenerate}
-                disabled={isGenerating || !prompt.trim()}
-                className="w-full py-3 bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-opacity flex items-center justify-center gap-2"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    {generationProgress || 'Generating...'}
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5" />
-                    Generate Card
-                  </>
-                )}
-              </button>
-            </div>
+            )}
           </div>
         )}
 

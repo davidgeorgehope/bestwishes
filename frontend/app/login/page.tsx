@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import { Zap, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Heart, Mail, Lock, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -27,14 +27,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950/20 to-gray-950 flex items-center justify-center px-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-rose-950/20 to-gray-950 flex items-center justify-center px-6">
       <div className="w-full max-w-md">
         {/* Logo Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Zap className="w-10 h-10 text-purple-500" />
-            <h1 className="text-5xl font-bold gradient-text">
-              VIBECASTER
+            <Heart className="w-10 h-10 text-rose-400" />
+            <h1 className="text-4xl font-bold gradient-text">
+              Best Wishes
             </h1>
           </div>
           <p className="text-gray-400">
@@ -58,7 +58,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                   placeholder="you@example.com"
                 />
               </div>
@@ -77,7 +77,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
                   placeholder="••••••••"
                 />
               </div>
@@ -95,7 +95,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+              className="w-full py-3 px-4 bg-gradient-to-r from-rose-600 to-pink-600 hover:opacity-90 disabled:bg-gray-700 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 focus:ring-offset-gray-900"
             >
               {isLoading ? 'Signing in...' : 'Sign In'}
             </button>
@@ -105,7 +105,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-gray-400 text-sm">
               Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-purple-400 hover:text-purple-300 font-semibold">
+              <Link href="/signup" className="text-rose-400 hover:text-rose-300 font-semibold">
                 Sign up
               </Link>
             </p>
