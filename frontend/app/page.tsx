@@ -236,8 +236,8 @@ export default function Home() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-950 via-rose-950/20 to-gray-950 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-400" />
+      <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
       </div>
     );
   }
@@ -256,7 +256,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-rose-950/20 to-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-pink-50">
       {/* Notification Toast */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg ${
@@ -268,19 +268,19 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+      <header className="border-b border-gray-200 bg-white/80 backdrop-blur-sm">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Heart className="w-8 h-8 text-rose-400" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-400 to-pink-400 bg-clip-text text-transparent">
+            <Heart className="w-8 h-8 text-rose-500" />
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-rose-600 to-pink-600 bg-clip-text text-transparent">
               Best Wishes
             </h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-gray-400 text-sm">{user.email}</span>
+            <span className="text-gray-600 text-sm">{user.email}</span>
             <button
               onClick={logout}
-              className="text-gray-400 hover:text-white transition-colors"
+              className="text-gray-500 hover:text-gray-700 transition-colors"
             >
               <LogOut className="w-5 h-5" />
             </button>
@@ -289,7 +289,7 @@ export default function Home() {
       </header>
 
       {/* Tabs */}
-      <div className="border-b border-gray-800">
+      <div className="border-b border-gray-200">
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex gap-1">
             {tabs.map((tab) => (
@@ -298,8 +298,8 @@ export default function Home() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors border-b-2 -mb-px ${
                   activeTab === tab.id
-                    ? 'text-rose-400 border-rose-400'
-                    : 'text-gray-400 border-transparent hover:text-gray-200'
+                    ? 'text-rose-600 border-rose-500'
+                    : 'text-gray-500 border-transparent hover:text-gray-700'
                 }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -319,10 +319,10 @@ export default function Home() {
             {generatedVariants.length > 0 ? (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-white">Choose Your Card Design</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">Choose Your Card Design</h2>
                   <button
                     onClick={handleStartOver}
-                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                    className="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
                   >
                     Start Over
                   </button>
@@ -334,10 +334,10 @@ export default function Home() {
                     <button
                       key={variant.index}
                       onClick={() => setSelectedVariant(variant.index)}
-                      className={`relative rounded-xl overflow-hidden border-2 transition-all ${
+                      className={`relative rounded-xl overflow-hidden border-2 transition-all shadow-md ${
                         selectedVariant === variant.index
                           ? 'border-rose-500 ring-2 ring-rose-500/50'
-                          : 'border-gray-700 hover:border-gray-600'
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       <div className="aspect-[5/7]">
@@ -361,7 +361,7 @@ export default function Home() {
 
                 {/* Selected variant preview and actions */}
                 {selectedVariant !== null && (
-                  <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
+                  <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-lg">
                     <div className="flex gap-6">
                       {/* Preview */}
                       <div className="flex-1">
@@ -373,8 +373,8 @@ export default function Home() {
                       </div>
                       {/* Actions */}
                       <div className="w-64 space-y-4">
-                        <h3 className="text-lg font-medium text-white">Card Options</h3>
-                        <p className="text-gray-400 text-sm">
+                        <h3 className="text-lg font-medium text-gray-900">Card Options</h3>
+                        <p className="text-gray-600 text-sm">
                           {prompt.length > 100 ? prompt.slice(0, 100) + '...' : prompt}
                         </p>
                         <button
@@ -388,7 +388,7 @@ export default function Home() {
                         <button
                           onClick={handleGenerate}
                           disabled={isGenerating}
-                          className="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                          className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-lg transition-colors flex items-center justify-center gap-2 border border-gray-300"
                         >
                           {isGenerating ? (
                             <>
@@ -407,19 +407,19 @@ export default function Home() {
             ) : (
               /* Show the creation form */
               <div className="max-w-2xl mx-auto">
-                <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-6">
-                  <h2 className="text-xl font-semibold text-white mb-6">Create a Card</h2>
+                <div className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-6 shadow-lg">
+                  <h2 className="text-xl font-semibold text-gray-900 mb-6">Create a Card</h2>
 
                   {/* Prompt */}
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Describe your card
                     </label>
                     <textarea
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       placeholder="e.g., Birthday card for my mum who loves gardening and cats, make it funny but not crude"
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent resize-none"
                       rows={4}
                       disabled={isGenerating}
                     />
@@ -428,13 +428,13 @@ export default function Home() {
                   {/* Occasion & Style */}
                   <div className="grid grid-cols-2 gap-4 mb-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Occasion
                       </label>
                       <select
                         value={occasion}
                         onChange={(e) => setOccasion(e.target.value)}
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                         disabled={isGenerating}
                       >
                         <option value="">Select occasion...</option>
@@ -444,7 +444,7 @@ export default function Home() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
                         Style (optional)
                       </label>
                       <input
@@ -452,7 +452,7 @@ export default function Home() {
                         value={style}
                         onChange={(e) => setStyle(e.target.value)}
                         placeholder="e.g., playful, elegant, minimal"
-                        className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-rose-500"
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-rose-500"
                         disabled={isGenerating}
                       />
                     </div>
@@ -460,7 +460,7 @@ export default function Home() {
 
                   {/* Photo Upload */}
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Photos (optional, up to 5)
                     </label>
                     <div className="flex flex-wrap gap-3">
@@ -469,7 +469,7 @@ export default function Home() {
                           <img
                             src={URL.createObjectURL(photo)}
                             alt={`Photo ${index + 1}`}
-                            className="w-20 h-20 object-cover rounded-lg border border-gray-700"
+                            className="w-20 h-20 object-cover rounded-lg border border-gray-300"
                           />
                           <button
                             onClick={() => removePhoto(index)}
@@ -481,7 +481,7 @@ export default function Home() {
                         </div>
                       ))}
                       {photos.length < 5 && (
-                        <label className={`w-20 h-20 border-2 border-dashed border-gray-700 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-600 transition-colors ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <label className={`w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}>
                           <input
                             type="file"
                             accept="image/*"
@@ -490,7 +490,7 @@ export default function Home() {
                             multiple
                             disabled={isGenerating}
                           />
-                          <Upload className="w-6 h-6 text-gray-500" />
+                          <Upload className="w-6 h-6 text-gray-400" />
                         </label>
                       )}
                     </div>
@@ -523,15 +523,15 @@ export default function Home() {
         {/* My Cards Tab */}
         {activeTab === 'my-cards' && (
           <div>
-            <h2 className="text-xl font-semibold text-white mb-6">My Cards</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">My Cards</h2>
             {loadingCards ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-rose-400" />
+                <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
               </div>
             ) : cards.length === 0 ? (
-              <div className="text-center py-12 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl">
-                <FolderHeart className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 mb-4">You have not created any cards yet</p>
+              <div className="text-center py-12 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm">
+                <FolderHeart className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600 mb-4">You have not created any cards yet</p>
                 <button
                   onClick={() => setActiveTab('create')}
                   className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors"
@@ -542,12 +542,12 @@ export default function Home() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {cards.map((card) => (
-                  <div key={card.id} className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4">
-                    <div className="aspect-[5/7] bg-gray-800 rounded-lg mb-3 flex items-center justify-center">
-                      <Heart className="w-12 h-12 text-gray-700" />
+                  <div key={card.id} className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <div className="aspect-[5/7] bg-gray-100 rounded-lg mb-3 flex items-center justify-center">
+                      <Heart className="w-12 h-12 text-gray-300" />
                     </div>
-                    <p className="text-white text-sm font-medium truncate">{card.prompt}</p>
-                    <p className="text-gray-400 text-xs mt-1">
+                    <p className="text-gray-900 text-sm font-medium truncate">{card.prompt}</p>
+                    <p className="text-gray-500 text-xs mt-1">
                       {card.occasion || 'General'} • {new Date(card.created_at * 1000).toLocaleDateString()}
                     </p>
                   </div>
@@ -561,14 +561,14 @@ export default function Home() {
         {activeTab === 'gallery' && (
           <div>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white">Inspiration Gallery</h2>
+              <h2 className="text-xl font-semibold text-gray-900">Inspiration Gallery</h2>
               <select
                 value={occasionFilter}
                 onChange={(e) => {
                   setOccasionFilter(e.target.value);
                   loadExamples();
                 }}
-                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
+                className="px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500"
               >
                 <option value="">All occasions</option>
                 {occasions.map(o => (
@@ -578,20 +578,20 @@ export default function Home() {
             </div>
             {loadingExamples ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-rose-400" />
+                <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
               </div>
             ) : examples.length === 0 ? (
-              <div className="text-center py-12 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl">
-                <Images className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">No examples available yet</p>
+              <div className="text-center py-12 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm">
+                <Images className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-600">No examples available yet</p>
                 <p className="text-gray-500 text-sm mt-2">Check back soon for inspiration!</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {examples.map((example) => (
-                  <div key={example.id} className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl p-4 group">
-                    <div className="aspect-[5/7] bg-gray-800 rounded-lg mb-3 flex items-center justify-center relative overflow-hidden">
-                      <Heart className="w-12 h-12 text-gray-700" />
+                  <div key={example.id} className="bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl p-4 group shadow-sm">
+                    <div className="aspect-[5/7] bg-gray-100 rounded-lg mb-3 flex items-center justify-center relative overflow-hidden">
+                      <Heart className="w-12 h-12 text-gray-300" />
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                         <button
                           onClick={() => handleUseExample(example)}
@@ -601,11 +601,11 @@ export default function Home() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-white text-sm">{example.prompt}</p>
+                    <p className="text-gray-900 text-sm">{example.prompt}</p>
                     {example.style_tags && example.style_tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {example.style_tags.map((tag, i) => (
-                          <span key={i} className="px-2 py-0.5 bg-gray-800 text-gray-400 text-xs rounded">
+                          <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
                             {tag}
                           </span>
                         ))}

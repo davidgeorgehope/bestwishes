@@ -3,15 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 body {
@@ -30,7 +23,7 @@ body {
 
 /* Rose gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #fb7185 0%, #ec4899 100%);
+  background: linear-gradient(135deg, #e11d48 0%, #db2777 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
