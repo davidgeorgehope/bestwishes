@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { MarkdownAlternate } from "@/components/MarkdownAlternate";
 
 export const metadata: Metadata = {
   title: "Best Wishes",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <AuthProvider>
+          <MarkdownAlternate />
           {children}
         </AuthProvider>
       </body>
