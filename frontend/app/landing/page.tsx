@@ -194,6 +194,9 @@ export default function LandingPage() {
           <p className="text-gray-500 text-sm">
             AI-powered greeting cards for every occasion
           </p>
+          <a href="mailto:me@davidgeorgehope.com" className="text-gray-500 hover:text-gray-700 text-sm transition-colors">
+            me@davidgeorgehope.com
+          </a>
         </div>
       </footer>
     </div>
