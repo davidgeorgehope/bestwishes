@@ -18,8 +18,8 @@ load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # Models
-TEXT_MODEL = "gemini-2.0-flash"
-IMAGE_MODEL = "gemini-2.0-flash-exp"  # For image generation
+TEXT_MODEL = "gemini-3.8-flash"
+IMAGE_MODEL = "gemini-3.1-flash-image"  # For image generation
 
 
 def emit_event(event_type: str, **kwargs) -> str:
