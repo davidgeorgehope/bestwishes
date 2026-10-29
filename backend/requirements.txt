@@ -1,6 +1,7 @@
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
-google-genai>=1.52.0
+openai>=1.50
+httpx
 tweepy==4.14.0
 apscheduler==3.10.4
 python-dotenv==1.0.0

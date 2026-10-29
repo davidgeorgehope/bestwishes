@@ -2,7 +2,7 @@
 
 > AI-powered local-first social media automation platform
 
-Best Wishes is a monolithic localhost application that uses Google Gemini AI and Imagen to automatically generate and post engaging content to your social media accounts.
+Best Wishes is a monolithic localhost application that uses xAI Grok and grok-imagine to automatically generate and post engaging content to your social media accounts.
 
 ## Features
 
