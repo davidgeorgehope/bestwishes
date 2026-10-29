@@ -21,7 +21,7 @@ XAI_API_KEY = os.getenv("XAI_API_KEY")
 client = OpenAI(api_key=XAI_API_KEY or "missing", base_url=XAI_BASE_URL)
 
 # Models
-TEXT_MODEL = "grok-4.3"
+TEXT_MODEL = "grok-4.7"
 IMAGE_MODEL = "grok-imagine-image-2.0"
 
 
