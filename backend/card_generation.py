@@ -1,5 +1,5 @@
 """
-Card generation using Google Gemini.
+Card generation using xAI (Grok text + grok-imagine images).
 Generates greeting card designs from text prompts and optional photos.
 """
 
@@ -8,18 +8,34 @@ import json
 import base64
 import time
 from typing import Generator, Optional, List
-from google import genai
-from google.genai import types
+import httpx
+from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Initialize Gemini client
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+XAI_BASE_URL = "https://api.x.ai/v1"
+XAI_API_KEY = os.getenv("XAI_API_KEY")
+
+# xAI client (OpenAI-compatible API)
+client = OpenAI(api_key=XAI_API_KEY or "missing", base_url=XAI_BASE_URL)
 
 # Models
-TEXT_MODEL = "gemini-3.8-flash"
-IMAGE_MODEL = "gemini-3.1-flash-image"  # For image generation
+TEXT_MODEL = "grok-4.3"
+IMAGE_MODEL = "grok-imagine-image-2.0"
+
+
+def _chat(system_prompt: str, user_message: str, temperature: float, max_tokens: int) -> str:
+    response = client.chat.completions.create(
+        model=TEXT_MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_message},
+        ],
+        temperature=temperature,
+        max_tokens=max_tokens,
+    )
+    return response.choices[0].message.content or ""
 
 
 def emit_event(event_type: str, **kwargs) -> str:
@@ -30,7 +46,7 @@ def emit_event(event_type: str, **kwargs) -> str:
 
 def refine_card_prompt(user_prompt: str, occasion: str = None, style: str = None) -> str:
     """
-    Use Gemini to refine the user's prompt into a detailed image generation prompt.
+    Use Grok to refine the user's prompt into a detailed image generation prompt.
     """
     system_prompt = """You are an expert greeting card designer. Your task is to transform a user's card request
 into a detailed image generation prompt that will create a beautiful, printable greeting card design.
@@ -54,22 +70,12 @@ Output ONLY the image generation prompt, nothing else. Make it detailed and spec
     if style:
         user_message += f"\n\nPreferred style: {style}"
 
-    response = client.models.generate_content(
-        model=TEXT_MODEL,
-        contents=user_message,
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=0.8,
-            max_output_tokens=500
-        )
-    )
-
-    return response.text.strip()
+    return _chat(system_prompt, user_message, 0.8, 500).strip()
 
 
 def generate_card_image(prompt: str, photo_data: List[bytes] = None) -> Optional[dict]:
     """
-    Generate a card image using Gemini's image generation.
+    Generate a card image using xAI grok-imagine.
 
     Returns dict with 'image_data' (bytes) and 'mime_type' (str) or None on failure.
     """
@@ -86,44 +92,26 @@ Requirements:
 - Leave some space at the bottom for a message"""
 
     try:
-        # If we have photos, include them as reference
-        contents = []
-
+        headers = {"Authorization": f"Bearer {XAI_API_KEY}"}
+        body = {"model": IMAGE_MODEL, "response_format": "b64_json"}
         if photo_data:
-            # Add instruction about using the photos
-            contents.append("Create a greeting card design that incorporates or is inspired by these reference photos:")
-            for i, photo in enumerate(photo_data):
-                # Detect mime type (assume JPEG if unknown)
-                mime_type = "image/jpeg"
-                if photo[:8] == b'\x89PNG\r\n\x1a\n':
-                    mime_type = "image/png"
-                elif photo[:2] == b'\xff\xd8':
-                    mime_type = "image/jpeg"
-
-                contents.append(types.Part.from_bytes(data=photo, mime_type=mime_type))
-            contents.append(full_prompt)
-        else:
-            contents.append(full_prompt)
-
-        response = client.models.generate_content(
-            model=IMAGE_MODEL,
-            contents=contents,
-            config=types.GenerateContentConfig(
-                response_modalities=["image", "text"],
-                temperature=1.0,
+            # Reference photo -> xAI image edit endpoint (uses the first photo)
+            photo = photo_data[0]
+            mime_type = "image/png" if photo[:8] == b'\x89PNG\r\n\x1a\n' else "image/jpeg"
+            data_url = f"data:{mime_type};base64,{base64.b64encode(photo).decode()}"
+            body.update(
+                prompt="Create a greeting card design that incorporates or is inspired by this reference photo.\n\n" + full_prompt,
+                image={"url": data_url, "type": "image_url"},
             )
-        )
+            url = f"{XAI_BASE_URL}/images/edits"
+        else:
+            body.update(prompt=full_prompt, aspect_ratio="2:3")
+            url = f"{XAI_BASE_URL}/images/generations"
 
-        # Extract the image from response
-        if response.candidates and response.candidates[0].content.parts:
-            for part in response.candidates[0].content.parts:
-                if hasattr(part, 'inline_data') and part.inline_data:
-                    return {
-                        'image_data': part.inline_data.data,
-                        'mime_type': part.inline_data.mime_type
-                    }
-
-        return None
+        resp = httpx.post(url, headers=headers, json=body, timeout=180)
+        resp.raise_for_status()
+        b64 = resp.json()["data"][0]["b64_json"]
+        return {'image_data': base64.b64decode(b64), 'mime_type': 'image/jpeg'}
 
     except Exception as e:
         print(f"Error generating card image: {e}")
@@ -238,17 +226,9 @@ Then: 3 alternative messages, each on its own line starting with "ALT: "
     user_message += f"\nTone: {tone}"
 
     try:
-        response = client.models.generate_content(
-            model=TEXT_MODEL,
-            contents=user_message,
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                temperature=0.9,
-                max_output_tokens=300
-            )
-        )
+        text = _chat(system_prompt, user_message, 0.9, 300)
 
-        lines = response.text.strip().split('\n')
+        lines = text.strip().split('\n')
         main_message = lines[0] if lines else "Wishing you all the best!"
         alternatives = []
 
